@@ -4,6 +4,8 @@ from collections import deque
 import networkx as nx
 import matplotlib.pyplot as plt
 
+import time
+import statistics
 
 def generate_random_graph(num_nodes, max_edges_per_node):
   graph = {}
@@ -102,3 +104,34 @@ def visualize_graph(edges_set):
 
 edges_set = parse_graph(random_graph)
 visualize_graph(edges_set)
+
+
+
+
+def measure_execution_time(graph_generator, num_nodes, max_edges_per_node, num_trials=10):
+  execution_times = []
+
+  for _ in range(num_trials):
+      graph = graph_generator(num_nodes, max_edges_per_node)
+      start_time = time.time_ns()
+      # Здесь вызывается ваш алгоритм с графом graph
+      shortest_path = wavefront_algorithm(graph, start_vertex, end_vertex)
+      end_time = time.time_ns()
+      execution_times.append(end_time - start_time)
+
+  # Выборка значений между квантилем порядка 0.20 и квантилем порядка 0.80
+  lower_quantile = statistics.quantiles(execution_times, n=5)[1]
+  upper_quantile = statistics.quantiles(execution_times, n=5)[3]
+  filtered_times = [t for t in execution_times if lower_quantile <= t <= upper_quantile]
+
+  # Вычисление среднего времени выполнения
+  average_time = sum(filtered_times) / len(filtered_times)
+
+  return average_time
+
+# Пример использования
+num_nodes = 10
+max_edges_per_node = 4
+
+average_time = measure_execution_time(generate_random_graph, num_nodes, max_edges_per_node)
+print(f"Average execution time for {num_nodes} nodes: {average_time} ns")
